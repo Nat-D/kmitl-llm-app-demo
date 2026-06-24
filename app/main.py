@@ -5,16 +5,51 @@ POST /api/chat streams the reply as Server-Sent Events — one JSON frame per to
 format the course's frontend/SSE lecture teaches, so the browser code in web/app.js
 is the same buffer-and-split reader from that lecture.
 """
+import asyncio
 import json
+import time
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import llm, rag, store
 from app.schemas import ChatRequest
+
+# --- a tiny per-client rate limit -------------------------------------------------
+# This endpoint is public and every request drives the shared model, so we cap it
+# with an in-process token bucket (same idea as the course portal's runner). One
+# process only — for multiple replicas you'd move this to Redis.
+RL_CAPACITY = 20            # burst
+RL_REFILL_PER_SEC = 20 / 60.0  # ~20 requests/min sustained
+
+
+@dataclass
+class _Bucket:
+    tokens: float
+    last: float
+
+
+_buckets: dict[str, _Bucket] = {}
+_rl_lock = asyncio.Lock()
+
+
+async def _rate_ok(client: str) -> bool:
+    async with _rl_lock:
+        now = time.monotonic()
+        b = _buckets.get(client)
+        if b is None:
+            _buckets[client] = _Bucket(RL_CAPACITY - 1, now)
+            return True
+        b.tokens = min(RL_CAPACITY, b.tokens + (now - b.last) * RL_REFILL_PER_SEC)
+        b.last = now
+        if b.tokens >= 1:
+            b.tokens -= 1
+            return True
+        return False
 
 
 @asynccontextmanager
@@ -40,20 +75,32 @@ def sse(obj: dict) -> str:
 
 
 @app.post("/api/chat")
-async def chat(req: ChatRequest) -> StreamingResponse:
+async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
+    # Behind Cloudflare the real client IP is in cf-connecting-ip; fall back locally.
+    client = request.headers.get("cf-connecting-ip") or (
+        request.client.host if request.client else "anon"
+    )
+    if not await _rate_ok(client):
+        raise HTTPException(status_code=429, detail="Rate limit: ~20 requests/min. Slow down a bit.")
+
     async def events():
-        if req.use_rag:
-            # Grounded path: retrieve, cite, refuse when nothing clears the floor.
-            async for event in rag.answer(app.state.db, req.message):
-                yield sse(event)
-        else:
-            # Plain chat (no retrieval) — useful to demo the difference live.
-            messages = [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": req.message},
-            ]
-            async for token in llm.chat_stream(messages):
-                yield sse({"token": token})
+        try:
+            if req.use_rag:
+                # Grounded path: retrieve, cite, refuse when nothing clears the floor.
+                async for event in rag.answer(app.state.db, req.message):
+                    yield sse(event)
+            else:
+                # Plain chat (no retrieval) — useful to demo the difference live.
+                messages = [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": req.message},
+                ]
+                async for token in llm.chat_stream(messages):
+                    yield sse({"token": token})
+        except Exception as exc:
+            # The 200 + headers are already sent, so we can't raise — surface the
+            # failure as an SSE frame the browser shows instead of a silent cut-off.
+            yield sse({"error": f"stream failed: {exc!r}"})
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(

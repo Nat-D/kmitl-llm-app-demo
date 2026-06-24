@@ -45,6 +45,14 @@ form.addEventListener('submit', async (e) => {
     body: JSON.stringify({ message: q, use_rag: ragToggle.checked }),
   });
 
+  // A rejected request (422 bad input, 429 rate-limited) has no SSE body — show it.
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`;
+    try { const d = await res.json(); if (d.detail) msg = d.detail; } catch { /* non-JSON */ }
+    bot.error(msg);
+    return;
+  }
+
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';

@@ -12,10 +12,11 @@ from collections.abc import AsyncIterator
 from app import llm, store
 
 RAG_SYSTEM = (
-    "You are a teaching assistant for a course on building LLM apps. Answer ONLY "
-    "from the numbered sources below, and cite each claim with its number like [1]. "
-    "If the sources do not contain the answer, say you don't know — never use outside "
-    "knowledge.\n\nSources:\n{context}"
+    "You are a friendly teaching assistant for a course on building LLM apps. Use the "
+    "numbered sources below to answer the question, and cite what you use with [n]. "
+    "Answer helpfully with whatever the sources cover — you don't need every detail to "
+    "be useful. Only say you don't know if the sources are clearly unrelated to the "
+    "question.\n\nSources:\n{context}"
 )
 
 # Said when nothing clears the min_score floor. Refusing beats confidently making

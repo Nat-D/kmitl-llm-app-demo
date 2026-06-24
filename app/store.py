@@ -13,7 +13,10 @@ from dataclasses import dataclass
 import numpy as np
 
 DB_PATH = os.environ.get("DB_PATH", "data/store.db")
-MIN_SCORE = float(os.environ.get("MIN_SCORE", "0.45"))
+# Floor tuned to bge-m3's cosine range on this corpus: in-corpus questions top out
+# around 0.45-0.55, off-corpus around 0.27-0.40, so 0.40 separates them. (A floor
+# that's too high refuses real questions; too low lets junk through. Measure it.)
+MIN_SCORE = float(os.environ.get("MIN_SCORE", "0.40"))
 TOP_K = int(os.environ.get("TOP_K", "4"))
 
 
