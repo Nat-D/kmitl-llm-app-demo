@@ -6,16 +6,26 @@ format the course's frontend/SSE lecture teaches, so the browser code in web/app
 is the same buffer-and-split reader from that lecture.
 """
 import json
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import llm
+from app import llm, rag, store
 from app.schemas import ChatRequest
 
-app = FastAPI(title="KMITL LLM App Demo")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Open the vector store once at startup (read-only at serve time).
+    app.state.db = store.connect()
+    yield
+    app.state.db.close()
+
+
+app = FastAPI(title="KMITL LLM App Demo", lifespan=lifespan)
 WEB = Path(__file__).resolve().parent.parent / "web"
 
 SYSTEM_PROMPT = (
@@ -31,14 +41,19 @@ def sse(obj: dict) -> str:
 
 @app.post("/api/chat")
 async def chat(req: ChatRequest) -> StreamingResponse:
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": req.message},
-    ]
-
     async def events():
-        async for token in llm.chat_stream(messages):
-            yield sse({"token": token})
+        if req.use_rag:
+            # Grounded path: retrieve, cite, refuse when nothing clears the floor.
+            async for event in rag.answer(app.state.db, req.message):
+                yield sse(event)
+        else:
+            # Plain chat (no retrieval) — useful to demo the difference live.
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": req.message},
+            ]
+            async for token in llm.chat_stream(messages):
+                yield sse({"token": token})
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(
