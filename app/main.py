@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -109,6 +109,23 @@ async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
         # Tell any proxy NOT to buffer, or the live-token effect is lost.
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@app.post("/api/extract")
+async def extract(request: Request, image: UploadFile = File(...)) -> dict:
+    """Multimodal structured output (Lecture 2): upload a document image, get its
+    fields back as validated JSON. The model reads the image directly."""
+    client = request.headers.get("cf-connecting-ip") or (
+        request.client.host if request.client else "anon"
+    )
+    if not await _rate_ok(client):
+        raise HTTPException(status_code=429, detail="Rate limit: ~20 requests/min. Slow down a bit.")
+    data = await image.read()
+    if not data:
+        raise HTTPException(status_code=422, detail="No image uploaded.")
+    if len(data) > 4_000_000:
+        raise HTTPException(status_code=413, detail="Image too large (max ~4 MB).")
+    return await llm.extract_from_image(data, image.content_type or "image/png")
 
 
 @app.get("/api/health")

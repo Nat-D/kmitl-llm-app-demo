@@ -29,6 +29,7 @@ Read in this order — it's also the course order:
 |---|---|---|
 | `app/llm.py` | L1–L4 | the only place we call a model: `chat_stream()` + `embed()` |
 | `app/main.py`, `web/app.js` | L3–L4 | `POST /api/chat` Server-Sent Events, end to end |
+| `app/llm.py` `extract_from_image` + `/api/extract` | L2 | **multimodal**: read a document image → structured JSON (parse + repair) |
 | `app/store.py`, `app/ingest.py` | L5 | embeddings → a vector store in ~100 lines; `min_score` floor |
 | `app/rag.py` | L6 | retrieve → numbered context → stream a **cited** answer |
 | `eval/` | L7–L8 | Recall@k / MRR / nDCG + LLM-as-judge over a labelled set |

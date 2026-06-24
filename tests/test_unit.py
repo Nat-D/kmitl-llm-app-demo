@@ -5,7 +5,7 @@ prompt formatting, and the eval metrics.
 """
 import math
 
-from app import rag, store
+from app import llm, rag, store
 from app.ingest import chunk_text
 from app.store import Hit
 from eval import eval as ev
@@ -36,6 +36,13 @@ def test_format_context_numbers_the_sources():
     ctx = rag._format_context([Hit(1, "a.md", "alpha", 0.9), Hit(2, "b.md", "beta", 0.8)])
     assert "[1] (a.md) alpha" in ctx
     assert "[2] (b.md) beta" in ctx
+
+
+def test_parse_json_pulls_object_out_of_messy_replies():
+    assert llm._parse_json('Sure: {"a": 1} done') == {"a": 1}
+    assert llm._parse_json('```json\n{"b": "x"}\n```') == {"b": "x"}
+    assert llm._parse_json("no json here") is None
+    assert llm._parse_json("[1, 2, 3]") is None   # must be an object, not a list
 
 
 def test_eval_metrics():

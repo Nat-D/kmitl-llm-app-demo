@@ -75,3 +75,24 @@ form.addEventListener('submit', async (e) => {
     }
   }
 });
+
+// Multimodal demo (Lecture 2): upload an image, the model extracts structured JSON.
+const imgInput = document.getElementById('img');
+const jsonOut = document.getElementById('json');
+if (imgInput) {
+  imgInput.addEventListener('change', async () => {
+    const file = imgInput.files[0];
+    if (!file) return;
+    jsonOut.textContent = 'reading image…';
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch('/api/extract', { method: 'POST', body: fd });
+    if (!res.ok) {
+      let msg = `${res.status} ${res.statusText}`;
+      try { const d = await res.json(); if (d.detail) msg = d.detail; } catch { /* non-JSON */ }
+      jsonOut.textContent = '⚠ ' + msg;
+      return;
+    }
+    jsonOut.textContent = JSON.stringify(await res.json(), null, 2);
+  });
+}

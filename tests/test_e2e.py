@@ -74,3 +74,18 @@ async def test_rag_refuses_when_nothing_clears_the_floor(client, monkeypatch):
 async def test_bad_request_is_rejected(client):
     r = await client.post("/api/chat", json={"message": ""})   # min_length=1 fails
     assert r.status_code == 422
+
+
+async def test_extract_returns_structured_json(client, monkeypatch):
+    async def fake_extract(data, mime):
+        return {"invoice_number": "A-1042", "total": "450 THB"}
+
+    monkeypatch.setattr(llm, "extract_from_image", fake_extract)
+    r = await client.post("/api/extract", files={"image": ("inv.png", b"\x89PNG\r\n", "image/png")})
+    assert r.status_code == 200
+    assert r.json()["invoice_number"] == "A-1042"
+
+
+async def test_extract_rejects_empty_image(client):
+    r = await client.post("/api/extract", files={"image": ("e.png", b"", "image/png")})
+    assert r.status_code == 422
