@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KMITL LLM App Demo</title>
+  <style>
+    :root { --bg:#0f172a; --panel:#1e293b; --fg:#e2e8f0; --accent:#38bdf8; --amber:#fbbf24; --muted:#94a3b8; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,"Segoe UI",Roboto,sans-serif; }
+    header { padding:14px 20px; border-bottom:1px solid var(--panel); }
+    header h1 { margin:0; font-size:18px; color:var(--accent); }
+    header p { margin:4px 0 0; font-size:13px; color:var(--muted); }
+    main { max-width:780px; margin:0 auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+    #log { display:flex; flex-direction:column; gap:12px; min-height:50vh; }
+    .msg { padding:10px 14px; border-radius:10px; line-height:1.5; white-space:pre-wrap; }
+    .user { background:#334155; align-self:flex-end; max-width:80%; }
+    .bot { background:var(--panel); align-self:flex-start; max-width:90%; }
+    .sources { font-size:13px; color:var(--muted); border-left:2px solid var(--accent); padding:2px 10px; margin-top:6px; }
+    .sources b { color:var(--accent); }
+    form { display:flex; gap:8px; position:sticky; bottom:0; background:var(--bg); padding-top:8px; }
+    input { flex:1; padding:10px 12px; border-radius:8px; border:1px solid #334155; background:var(--panel); color:var(--fg); font-size:15px; }
+    button { padding:0 16px; border:none; border-radius:8px; background:var(--accent); color:#08222b; font-weight:600; cursor:pointer; }
+    label.rag { font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>KMITL · LLM App Demo</h1>
+    <p>A tiny chat + RAG reference app. Ask about the course stack — answers are grounded in the corpus and cited.</p>
+  </header>
+  <main>
+    <div id="log"></div>
+    <label class="rag"><input type="checkbox" id="rag" checked> use retrieval (RAG)</label>
+    <form id="form">
+      <input id="q" autocomplete="off" placeholder="e.g. How does the min_score floor work?">
+      <button>Send</button>
+    </form>
+  </main>
+  <script src="/web/app.js"></script>
+</body>
+</html>
