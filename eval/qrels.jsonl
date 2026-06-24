@@ -1,0 +1,14 @@
+{"query": "How does the min_score floor decide what to keep?", "relevant": ["06-min-score-floor.md"]}
+{"query": "What happens when no chunk is similar enough to the question?", "relevant": ["06-min-score-floor.md"]}
+{"query": "Which embedding model does the app use and how many dimensions?", "relevant": ["02-embeddings-bge-m3.md"]}
+{"query": "How are documents turned into vectors for search?", "relevant": ["02-embeddings-bge-m3.md", "04-vector-store.md"]}
+{"query": "What is the format of the streaming response frames?", "relevant": ["03-sse-streaming.md"]}
+{"query": "How does the browser read tokens as they arrive?", "relevant": ["03-sse-streaming.md"]}
+{"query": "Where are the chunk embeddings stored?", "relevant": ["04-vector-store.md"]}
+{"query": "How does the model tell me which source a claim came from?", "relevant": ["07-citations.md"]}
+{"query": "What does retrieval-augmented generation actually do?", "relevant": ["05-retrieval-augmented-generation.md"]}
+{"query": "How is retrieval quality measured?", "relevant": ["08-evaluation-metrics.md"]}
+{"query": "What metrics score whether the right chunks were found?", "relevant": ["08-evaluation-metrics.md"]}
+{"query": "How does the agent decide to call a tool?", "relevant": ["09-agents-and-tools.md"]}
+{"query": "What proxy serves the chat model and how is it configured?", "relevant": ["01-litellm-proxy.md"]}
+{"query": "Which endpoint handles chat and how is the request validated?", "relevant": ["10-fastapi-backend.md"]}
