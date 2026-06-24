@@ -9,7 +9,6 @@ dependencies = [
     "openai>=1.40",
     "pydantic>=2.7",
     "python-dotenv>=1.0",
-    "sqlite-vec>=0.1.6",
     "numpy>=1.26",
 ]
 
