@@ -30,6 +30,13 @@ the buffer-and-split reader from the SSE lecture — network chunks don't line u
 frames, so we stitch them. The `use_rag` toggle lets you show the same question with
 and without retrieval.
 
+### 5b. `app/llm.py extract_from_image` + `/api/extract` — multimodal (Lecture 2)
+`gemma-4-E4B-it` is multimodal, so the 📎 panel uploads a document image and the model
+reads it. We pass the image as a `data:` URL in the message and ask for JSON, then
+*parse it with one repair retry* — the same structured-output discipline as text, just
+with an image in the prompt. (`response_format` is ignored by the proxy, so we coax and
+parse rather than enforce a schema.)
+
 ### 6. `eval/` — now prove it works
 `eval.py` scores the retriever (Recall@k / MRR / nDCG) against `qrels.jsonl`; `judge.py`
 is an LLM-as-judge for answer quality. On this small, clean corpus the retrieval scores

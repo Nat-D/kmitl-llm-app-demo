@@ -20,9 +20,13 @@ from app import llm, rag, store
 from app.schemas import ChatRequest
 
 # --- a tiny per-client rate limit -------------------------------------------------
-# This endpoint is public and every request drives the shared model, so we cap it
-# with an in-process token bucket (same idea as the course portal's runner). One
-# process only — for multiple replicas you'd move this to Redis.
+# These endpoints are public and every request drives the shared model, so we cap
+# each client with an in-process token bucket (same idea as the course portal's
+# runner). Caveats worth knowing: (1) one bucket per client is shared across BOTH
+# /api/chat and /api/extract; (2) `_buckets` is never evicted, so it grows with the
+# number of distinct clients — fine for a short-lived demo process, but a long-lived
+# public service should add TTL/LRU eviction or move this to Redis (which also makes
+# it correct across multiple replicas).
 RL_CAPACITY = 20            # burst
 RL_REFILL_PER_SEC = 20 / 60.0  # ~20 requests/min sustained
 
@@ -114,7 +118,9 @@ async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
 @app.post("/api/extract")
 async def extract(request: Request, image: UploadFile = File(...)) -> dict:
     """Multimodal structured output (Lecture 2): upload a document image, get its
-    fields back as validated JSON. The model reads the image directly."""
+    fields back as JSON. The model reads the image directly. The reply is *parsed*
+    (best-effort, with one repair retry) — not validated against a schema; adding a
+    Pydantic model for the extracted shape is a good exercise (see schemas.py)."""
     client = request.headers.get("cf-connecting-ip") or (
         request.client.host if request.client else "anon"
     )
@@ -125,6 +131,10 @@ async def extract(request: Request, image: UploadFile = File(...)) -> dict:
         raise HTTPException(status_code=422, detail="No image uploaded.")
     if len(data) > 4_000_000:
         raise HTTPException(status_code=413, detail="Image too large (max ~4 MB).")
+    # content_type is a client-set header — a courtesy check, not a guarantee — but
+    # it's enough to reject an obvious non-image before we spend a model call on it.
+    if image.content_type and not image.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Please upload an image file.")
     return await llm.extract_from_image(data, image.content_type or "image/png")
 
 

@@ -89,3 +89,18 @@ async def test_extract_returns_structured_json(client, monkeypatch):
 async def test_extract_rejects_empty_image(client):
     r = await client.post("/api/extract", files={"image": ("e.png", b"", "image/png")})
     assert r.status_code == 422
+
+
+async def test_extract_rejects_non_image(client):
+    r = await client.post("/api/extract", files={"image": ("note.txt", b"hello", "text/plain")})
+    assert r.status_code == 415
+
+
+async def test_rate_limit_returns_429_after_capacity(client):
+    main._buckets.clear()  # fresh bucket for this client
+    codes = [
+        (await client.post("/api/chat", json={"message": "hi", "use_rag": False})).status_code
+        for _ in range(main.RL_CAPACITY + 3)
+    ]
+    assert 429 in codes  # the bucket drains and starts rejecting
+    main._buckets.clear()

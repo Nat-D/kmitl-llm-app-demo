@@ -45,6 +45,20 @@ def test_parse_json_pulls_object_out_of_messy_replies():
     assert llm._parse_json("[1, 2, 3]") is None   # must be an object, not a list
 
 
+async def test_extract_from_image_repairs_bad_json(monkeypatch):
+    # First reply isn't JSON -> the extractor shows it back and asks again (repair).
+    calls = []
+
+    async def fake_complete(messages, **kw):
+        calls.append(1)
+        return "sorry, here you go" if len(calls) == 1 else '{"invoice_number": "X-1"}'
+
+    monkeypatch.setattr(llm, "_complete", fake_complete)
+    out = await llm.extract_from_image(b"\x89PNG", "image/png")
+    assert out == {"invoice_number": "X-1"}
+    assert len(calls) == 2   # one initial call + one repair call
+
+
 def test_eval_metrics():
     ranked, relevant = ["x.md", "y.md", "z.md"], ["y.md"]
     assert ev.recall_at_k(ranked, relevant, 3) == 1.0
