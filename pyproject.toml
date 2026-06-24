@@ -27,3 +27,4 @@ package = false
 # same convention the course portal's test suite uses.
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["."]
