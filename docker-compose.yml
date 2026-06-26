@@ -3,7 +3,8 @@
 #   docker compose up -d            # starts Postgres with the vector extension
 #   uv sync --group pg              # install the Postgres driver + pgvector
 #   export DATABASE_URL=postgresql://rag:rag@localhost:55432/ragdemo
-#   make ingest && make run         # the app now uses pgvector instead of SQLite
+#   uv run python -m app.ingest corpus               # embed the corpus into Postgres
+#   uv run uvicorn app.main:app --reload --port 8000 # the app now uses pgvector
 #
 # NOTE the host port is 55432, NOT the standard 5432 — many lab machines already run
 # a Postgres on 5432, and this avoids the clash. (Inside the container it's still 5432.)

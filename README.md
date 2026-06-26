@@ -12,10 +12,10 @@ questions about how it itself works.
 ## Quickstart
 
 ```bash
-uv sync                      # install deps
-cp .env.example .env         # then put your course LiteLLM key in .env
-make ingest                  # chunk + embed corpus/ (needs the key)
-make run                     # http://localhost:8000
+uv sync                                             # install deps
+cp .env.example .env                                # then put your course LiteLLM key in .env
+uv run python -m app.ingest corpus                  # chunk + embed corpus/ (needs the key)
+uv run uvicorn app.main:app --reload --port 8000    # http://localhost:8000
 ```
 
 Both chat and embeddings go through the class LiteLLM proxy — one base URL, one key
@@ -64,8 +64,9 @@ nearest-neighbour search runs in the database. Schema changes are managed with
 docker compose up -d                 # Postgres + pgvector on host port 55432
 uv sync --group pg                   # driver + pgvector + alembic
 export DATABASE_URL=postgresql://rag:rag@localhost:55432/ragdemo
-alembic upgrade head                 # create the schema via a migration
-make ingest && make run              # the app now uses pgvector
+alembic upgrade head                                # create the schema via a migration
+uv run python -m app.ingest corpus                  # embed the corpus into Postgres
+uv run uvicorn app.main:app --reload --port 8000    # the app now uses pgvector
 ```
 
 The host port is **55432** (not the standard 5432) so it won't clash with a Postgres
@@ -86,8 +87,8 @@ shows it on its own, runnable over in-memory SQLite:
   service unit-tested by a plain call (a fake client, no HTTP) — the payoff of the split.
 
 ```bash
-make demo-orm        # ORM model + repository round-trip (in-memory SQLite)
-make demo-layering   # router → service → repository; service tested without HTTP
+uv run --group pg python -m examples.orm_repository   # ORM model + repository round-trip
+uv run --group pg python -m examples.layering         # router → service → repository, tested without HTTP
 ```
 
 See **[examples/README.md](examples/README.md)** for a step-by-step guide (prerequisites,

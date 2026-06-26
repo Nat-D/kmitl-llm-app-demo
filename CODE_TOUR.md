@@ -15,7 +15,7 @@ single most important RAG safety knob. (Production swap: pgvector / sqlite-vec, 
 `add`/`search` shape.)
 
 ### 3. `app/ingest.py` + `corpus/` — watch documents become vectors
-`chunk_text()` is deliberately naive (fixed-size windows). Run `make ingest` and the
+`chunk_text()` is deliberately naive (fixed-size windows). Run `uv run python -m app.ingest corpus` and the
 10 markdown docs about this app's own stack become rows in `data/store.db`.
 *Naive chunking is the obvious thing to improve — measure it with `eval/`.*
 
@@ -52,7 +52,7 @@ any model). The one tool searches the notes.
 - `test_unit.py`: pure logic (chunking, cosine + floor, metrics) — no network.
 - `test_e2e.py`: drives the real FastAPI app in-process with `httpx`, with the LLM
   **stubbed**, and asserts the SSE the browser would receive. This is why CI needs no
-  key. `make test`.
+  key. `uv run pytest -q`.
 
 ## Extension seams (each is a later lecture / a project idea)
 - **chunking** (`ingest.py`): swap fixed-size windows for sentence/semantic chunking — does `eval` improve?

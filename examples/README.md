@@ -77,10 +77,10 @@ instead of `CREATE TABLE` by hand. This demo needs Docker (for Postgres + pgvect
 # from the repo root
 docker compose up -d                                   # Postgres + pgvector on port 55432
 export DATABASE_URL=postgresql://rag:rag@localhost:55432/ragdemo
-make migrate                                           # = alembic upgrade head
+uv run --group pg alembic upgrade head                 # run the migration
 ```
 
-`make migrate` runs the single revision in `../alembic/versions/0001_create_chunks.py`,
+`alembic upgrade head` runs the single revision in `../alembic/versions/0001_create_chunks.py`,
 which creates the `chunks` table with a `vector(1024)` column. Check it worked:
 
 ```bash
@@ -92,7 +92,8 @@ Now the whole app runs on pgvector instead of SQLite (same code, `DATABASE_URL` 
 only switch):
 
 ```bash
-make ingest && make run        # ingest embeds the corpus into Postgres; open http://localhost:8000
+uv run python -m app.ingest corpus                  # embed the corpus into Postgres
+uv run uvicorn app.main:app --reload --port 8000    # open http://localhost:8000
 ```
 
 To roll the migration back: `uv run --group pg alembic downgrade -1` (drops the table).
@@ -102,13 +103,3 @@ What to read for:
 - `../alembic/versions/0001_create_chunks.py` — the `upgrade()` / `downgrade()` pair.
 - `../app/store_pg.py` — the pgvector store (same `Hit`/`connect`/`add`/`search` interface
   as the SQLite one); `../app/vectorstore.py` is the one-line `DATABASE_URL` switch.
-
----
-
-### One-step aliases (from the repo root)
-
-```bash
-make demo-orm        # = uv run --group pg python -m examples.orm_repository
-make demo-layering   # = uv run --group pg python -m examples.layering
-make migrate         # = alembic upgrade head   (needs docker compose up + DATABASE_URL)
-```
