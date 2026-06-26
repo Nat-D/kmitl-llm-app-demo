@@ -1,8 +1,8 @@
 """End-to-end tests — drive the real FastAPI app in-process with httpx, but STUB the
 model (no network, no key, runs in CI). We assert the actual SSE the browser receives.
 
-The same pattern the course portal uses: httpx.ASGITransport against the app object,
-the LLM swapped for a fake so tests are fast and deterministic.
+The standard FastAPI e2e pattern: httpx.ASGITransport against the app object, the LLM
+swapped for a fake so tests are fast and deterministic — no server, no key.
 """
 import json
 
