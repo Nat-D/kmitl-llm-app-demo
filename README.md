@@ -86,9 +86,13 @@ shows it on its own, runnable over in-memory SQLite:
   service unit-tested by a plain call (a fake client, no HTTP) — the payoff of the split.
 
 ```bash
-uv run --group pg python -m examples.orm_repository
-uv run --group pg python -m examples.layering
+make demo-orm        # ORM model + repository round-trip (in-memory SQLite)
+make demo-layering   # router → service → repository; service tested without HTTP
 ```
+
+See **[examples/README.md](examples/README.md)** for a step-by-step guide (prerequisites,
+expected output, what to read for) — including running the Alembic migration against
+Postgres + pgvector.
 
 ## Using this in the course
 

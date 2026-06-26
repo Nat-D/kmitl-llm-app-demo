@@ -1,4 +1,4 @@
-.PHONY: run ingest eval judge test pg-up migrate
+.PHONY: run ingest eval judge test pg-up migrate demo-orm demo-layering
 # Thin aliases — read these to see the real commands.
 
 run:        ## serve the app at http://localhost:8000
@@ -22,3 +22,10 @@ pg-up:      ## start Postgres + pgvector (host port 55432)
 
 migrate:    ## create/upgrade the Postgres schema via Alembic (needs DATABASE_URL)
 	uv run --group pg alembic upgrade head
+
+# --- runnable pattern demos (see examples/README.md) ------------------------------
+demo-orm:        ## run the ORM + repository example
+	uv run --group pg python -m examples.orm_repository
+
+demo-layering:   ## run the router->service->repository example
+	uv run --group pg python -m examples.layering
