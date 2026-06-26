@@ -7,3 +7,5 @@ __pycache__/
 .pytest_cache
 .github
 tests
+alembic
+docker-compose.yml

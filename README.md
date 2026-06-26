@@ -53,6 +53,26 @@ The repo grows the way the course does — one git tag per stage:
 `git checkout l06-rag` to see exactly that stage; `git diff l05-index l06-rag` *is*
 the "what RAG adds" lesson.
 
+## Optional: Postgres + pgvector (with Alembic migrations)
+
+The default store is SQLite (zero setup, easy to read). The **production swap** is
+Postgres + `pgvector` — same `Hit` / `connect` / `add` / `search` interface, but the
+nearest-neighbour search runs in the database. Schema changes are managed with
+**Alembic migrations** instead of `CREATE TABLE` by hand:
+
+```bash
+docker compose up -d                 # Postgres + pgvector on host port 55432
+uv sync --group pg                   # driver + pgvector + alembic
+export DATABASE_URL=postgresql://rag:rag@localhost:55432/ragdemo
+alembic upgrade head                 # create the schema via a migration
+make ingest && make run              # the app now uses pgvector
+```
+
+The host port is **55432** (not the standard 5432) so it won't clash with a Postgres
+already running on your machine. `app/store_pg.py` is the pgvector store, `alembic/`
+holds the migration that owns the schema, and `app/vectorstore.py` is the one-line
+switch: set `DATABASE_URL` and the whole app uses Postgres — nothing else changes.
+
 ## Using this in the course
 
 This app shows the **patterns**; your graded work applies them to a **different

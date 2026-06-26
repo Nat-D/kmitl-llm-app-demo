@@ -1,0 +1,28 @@
+# Optional: a local Postgres + pgvector, the "production swap" for the SQLite store.
+#
+#   docker compose up -d            # starts Postgres with the vector extension
+#   uv sync --group pg              # install the Postgres driver + pgvector
+#   export DATABASE_URL=postgresql://rag:rag@localhost:55432/ragdemo
+#   make ingest && make run         # the app now uses pgvector instead of SQLite
+#
+# NOTE the host port is 55432, NOT the standard 5432 — many lab machines already run
+# a Postgres on 5432, and this avoids the clash. (Inside the container it's still 5432.)
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: ragdemo
+    ports:
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d ragdemo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

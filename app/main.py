@@ -16,8 +16,9 @@ from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import llm, rag, store
+from app import llm, rag
 from app.schemas import ChatRequest
+from app.vectorstore import store  # SQLite, or pgvector if DATABASE_URL is set
 
 # --- a tiny per-client rate limit -------------------------------------------------
 # These endpoints are public and every request drives the shared model, so we cap

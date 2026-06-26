@@ -9,7 +9,8 @@ format, then call. No framework, no magic.
 import sqlite3
 from collections.abc import AsyncIterator
 
-from app import llm, store
+from app import llm
+from app.vectorstore import store  # SQLite, or pgvector if DATABASE_URL is set
 
 RAG_SYSTEM = (
     "You are a friendly teaching assistant for a course on building LLM apps. Use the "

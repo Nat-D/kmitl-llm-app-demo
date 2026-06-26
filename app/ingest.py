@@ -11,7 +11,8 @@ import glob
 import os
 import sys
 
-from app import llm, store
+from app import llm
+from app.vectorstore import store  # SQLite, or pgvector if DATABASE_URL is set
 
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 150

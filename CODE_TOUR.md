@@ -59,7 +59,9 @@ any model). The one tool searches the notes.
 - **hybrid search** (`store.py`): add BM25 keyword scores + reciprocal-rank fusion.
 - **query construction** (`rag.py`): rewrite/route the query before retrieval.
 - **more tools** (`agent/`): add a SQL or web-search tool with a guard.
-- **production store** (`store.py`): pgvector instead of brute-force NumPy.
+- **production store**: pgvector instead of brute-force NumPy — *implemented* in
+  `app/store_pg.py` (same interface, switched on by `DATABASE_URL`), with the schema
+  owned by Alembic migrations in `alembic/`. See the README's pgvector section.
 
 ## Stage tags
 `git checkout l03-chat | l05-index | l06-rag | l07-eval | l10-agent` to see the app at
