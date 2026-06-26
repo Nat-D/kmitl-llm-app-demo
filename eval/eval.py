@@ -53,7 +53,7 @@ def ndcg_at_k(ranked: list[str], relevant: list[str], k: int) -> float:
 async def main() -> None:
     db = store.connect()
     if store.count(db) == 0:
-        print("store is empty — run `make ingest` first.")
+        print("store is empty — run `python -m app.ingest corpus` first.")
         return
     qrels = load_qrels()
     totals = {"recall": 0.0, "mrr": 0.0, "ndcg": 0.0}
