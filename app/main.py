@@ -22,8 +22,9 @@ from app.vectorstore import store  # SQLite, or pgvector if DATABASE_URL is set
 
 # --- a tiny per-client rate limit -------------------------------------------------
 # These endpoints are public and every request drives the shared model, so we cap
-# each client with an in-process token bucket (same idea as the course portal's
-# runner). Caveats worth knowing: (1) one bucket per client is shared across BOTH
+# each client with an in-process token bucket (a classic rate-limit algorithm: a
+# bucket refills at a steady rate and each request spends one token). Caveats worth
+# knowing: (1) one bucket per client is shared across BOTH
 # /api/chat and /api/extract; (2) `_buckets` is never evicted, so it grows with the
 # number of distinct clients — fine for a short-lived demo process, but a long-lived
 # public service should add TTL/LRU eviction or move this to Redis (which also makes
