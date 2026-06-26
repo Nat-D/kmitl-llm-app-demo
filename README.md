@@ -73,6 +73,23 @@ already running on your machine. `app/store_pg.py` is the pgvector store, `alemb
 holds the migration that owns the schema, and `app/vectorstore.py` is the one-line
 switch: set `DATABASE_URL` and the whole app uses Postgres — nothing else changes.
 
+## The router → service → repository pattern (`examples/`)
+
+The app itself is intentionally **flat** (`main.py` + a few modules) so it reads in one
+sitting. But a growing backend wants the three-layer "house style": **router** (HTTP
+only) → **service** (business logic) → **repository** (pure data access). `examples/`
+shows it on its own, runnable over in-memory SQLite:
+
+- `examples/orm_repository.py` — a SQLAlchemy **ORM** model + a repository (the data
+  layer the app skips; the table an Alembic migration would own).
+- `examples/layering.py` — router → service → repository wired together, with the
+  service unit-tested by a plain call (a fake client, no HTTP) — the payoff of the split.
+
+```bash
+uv run --group pg python -m examples.orm_repository
+uv run --group pg python -m examples.layering
+```
+
 ## Using this in the course
 
 This app shows the **patterns**; your graded work applies them to a **different
